@@ -202,7 +202,7 @@ div.button {
 }
 
 ul.tags-list {
-    width: 100%;
+  width: 100%;
 	margin: 0;
 	padding: 0;
 	list-style: none;
@@ -211,7 +211,7 @@ ul.tags-list {
 ul.tags-list li {
 	margin: 0;
 	padding: 0 0 10px;
-    display: inline-block;
+  display: inline-block;
 }
 
 ul.tags-list li a {

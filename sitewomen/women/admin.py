@@ -30,6 +30,9 @@ class WomenAdmin(admin.ModelAdmin):
     list_per_page = 5
     search_fields = ['title__startswith', 'cat__name']
     list_filter = [MarriedFilter, 'cat__name', 'is_published', 'tags']
+    fields = ['title', 'slug', 'content', 'cat', 'husband']
+    # readonly_fields = ['slug']
+    prepopulated_fields = {'slug': ('title',)}
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

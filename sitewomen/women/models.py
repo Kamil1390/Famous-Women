@@ -43,10 +43,9 @@ class Women(models.Model):
     def get_absolute_url(self):
         return reverse('post', kwargs={'post_slug': self.slug})
 
-    # def save(self, *args, **kwargs):
-    #     transliterated_title = unidecode(self.title)
-    #     self.slug = slugify(transliterated_title)
-    #     super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        self.slug = slugify(unidecode(str(self.title)))
+        super().save(*args, **kwargs)
 
 class Category(models.Model):
     name = models.CharField(max_length=100, db_index=True, verbose_name="Категория")

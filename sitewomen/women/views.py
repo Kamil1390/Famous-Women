@@ -32,7 +32,8 @@ def add_page(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
         form = AddPostForm(request.POST)
         if form.is_valid():
-            print(form.cleaned_data)
+            form.save()
+            return redirect('home')
     else:
         form = AddPostForm()
     data = {

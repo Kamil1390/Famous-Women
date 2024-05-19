@@ -2,8 +2,9 @@ from django.http import HttpResponse, HttpRequest, HttpResponseNotFound
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.urls.exceptions import Resolver404
 from django.db import models
-from .models import Women, Category, TagPost
-from .forms import AddPostForm
+from .models import Women, Category, TagPost, UploadFiles
+from .forms import AddPostForm, UploadFileForm
+import uuid
 
 menu = [
     {"title": "О сайте", "url_name": "about"},
@@ -24,13 +25,33 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "women/index.html", context=data)
 
 
+# def handle_upload_file(f):
+#     name = f.name
+#     ext = ''
+#     if '.' in name:
+#         ext = name[name.rindex('.'):]
+#         name = name[:name.rindex('.')]
+#     suffix = str(uuid.uuid4())
+#     with open(f"uploads/{name}_{suffix}{ext}", "wb+") as destination:
+#         for chunk in f.chunks():
+#             destination.write(chunk)
+
+
 def about(request: HttpRequest) -> HttpResponse:
-    return render(request, "women/about.html", {"title": "О сайте", "menu": menu})
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            # handle_upload_file(form.cleaned_data['file'])
+            fp = UploadFiles(file=form.cleaned_data['file'])
+            fp.save()
+    else:
+        form = UploadFileForm()
+    return render(request, "women/about.html", {"title": "О сайте", "menu": menu, 'form': form})
 
 
 def add_page(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
-        form = AddPostForm(request.POST)
+        form = AddPostForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             return redirect('home')

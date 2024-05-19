@@ -1,4 +1,5 @@
 from django.contrib import admin, messages
+from django.utils.safestring import mark_safe
 from .models import Women, Category
 # Register your models here.
 
@@ -22,7 +23,7 @@ class MarriedFilter(admin.SimpleListFilter):
 
 @admin.register(Women)
 class WomenAdmin(admin.ModelAdmin):
-    list_display = ['title', 'time_create', 'is_published', 'cat', 'breif_info']
+    list_display = ['title', 'post_photo', 'time_create', 'is_published', 'cat']
     list_display_links = ('title', )
     ordering = ('-time_create', 'title')
     list_editable = ('is_published', )
@@ -30,10 +31,12 @@ class WomenAdmin(admin.ModelAdmin):
     list_per_page = 5
     search_fields = ['title__startswith', 'cat__name']
     list_filter = [MarriedFilter, 'cat__name', 'is_published', 'tags']
-    fields = ['title', 'slug', 'content', 'cat', 'husband', 'tags']
-    # readonly_fields = ['slug']
+    fields = ['title', 'slug', 'content', 'photo', 'post_photo', 'cat', 'husband', 'tags']
+    readonly_fields = ['post_photo']
     # prepopulated_fields = {'slug': ('title',)}
-    filter_vertical = ['tags']
+    filter_horizontal = ['tags']
+    save_on_top = True
+
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -42,9 +45,11 @@ class WomenAdmin(admin.ModelAdmin):
         queryset = queryset.prefetch_related('tags')
         return queryset
 
-    @admin.display(description="Краткое описание", ordering='content')
-    def breif_info(self, women: Women):
-        return f"Количество {len(women.content)} строк"
+    @admin.display(description="Изображение", ordering='content')
+    def post_photo(self, women: Women):
+        if women.photo:
+            return mark_safe(f"<img src='{women.photo.url}' width=50>")
+        return "Без строк"
 
     @admin.action(description="Опубликовать выбранные статьи")
     def set_published(self, request, queryset):

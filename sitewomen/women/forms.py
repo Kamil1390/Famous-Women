@@ -10,7 +10,7 @@ class AddPostForm(forms.ModelForm):
 
     class Meta:
         model = Women
-        fields = ['title', 'slug', 'content', 'is_published', 'cat', 'husband', 'tags']
+        fields = ['title', 'slug', 'content', 'photo', 'is_published', 'cat', 'husband', 'tags']
         labels = {'slug': 'URL'}
         widgets = {'title': forms.TextInput(attrs={'class': 'form-input'}),
                    'content': forms.Textarea(attrs={'rows': 6, 'cols': 60}),
@@ -22,3 +22,7 @@ class AddPostForm(forms.ModelForm):
         if not (set(title) <= set(ALLOWED_CHARS)):
             raise ValidationError("Должны быть русские буквы")
         return title
+
+
+class UploadFileForm(forms.Form):
+    file = forms.ImageField(label='Файл')

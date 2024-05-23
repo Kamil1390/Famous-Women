@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.urls.exceptions import Resolver404
 from django.db import models
 from django.views import View
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, ListView
 from .models import Women, Category, TagPost, UploadFiles
 from .forms import AddPostForm, UploadFileForm
 import uuid
@@ -27,14 +27,17 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "women/index.html", context=data)
 
 
-class WomenHome(TemplateView):
+class WomenHome(ListView):
     template_name = 'women/index.html'
+    context_object_name = 'posts'
     extra_context = {
         "title": "Главная страница",
         "menu": menu,
-        "posts": Women.published.all().select_related("cat"),
         "cat_selected": 0,
     }
+
+    def get_queryset(self):
+        return Women.published.all().select_related("cat")
 
     # def get_context_data(self, **kwargs):
     #     context = super().get_context_data(**kwargs)
@@ -133,6 +136,23 @@ def show_category(request: HttpRequest, cat_slug: int) -> HttpResponse:
     return render(request, "women/index.html", context=data)
 
 
+class WomenCategory(ListView):
+    template_name = 'women/index.html'
+    context_object_name = 'posts'
+    # allow_empty = False
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cat = get_object_or_404(Category, slug=self.kwargs['cat_slug'])
+        context['title'] = f"Категория - {cat.name}"
+        context['menu'] = menu
+        context['cat_selected'] = cat.pk
+        return context
+
+    def get_queryset(self):
+        return Women.published.filter(cat__slug=self.kwargs['cat_slug']).select_related('cat')
+
+
 def page_not_found(request: HttpRequest, exception: Resolver404) -> HttpResponseNotFound:
     return HttpResponseNotFound(f"<h1>Страница не найдена</h1>")
 
@@ -147,4 +167,22 @@ def show_tags(request: HttpRequest, tag_slug: models.SlugField):
         'cat_selected': None,
     }
     return render(request, 'women/index.html', context=data)
+
+
+class WomenTags(ListView):
+    template_name = 'women/index.html'
+    context_object_name = 'posts'
+    allow_empty = False
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag = get_object_or_404(TagPost, slug=self.kwargs['tag_slug'])
+        context['title'] = f"Тег - {tag.tag}"
+        context['menu'] = menu
+        context['cat_selected'] = None
+        return context
+
+    def get_queryset(self):
+        tag = get_object_or_404(TagPost, slug=self.kwargs['tag_slug'])
+        return tag.womens.filter(is_published=Women.Status.PUBLISHED).select_related("cat")
 

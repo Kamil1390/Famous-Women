@@ -7,6 +7,7 @@ from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView, FormView, CreateView, UpdateView, DeleteView
 from .models import Women, Category, TagPost, UploadFiles
 from .forms import AddPostForm, UploadFileForm
+from django.core.paginator import Paginator
 from .utils import DataMixin
 import uuid
 
@@ -22,15 +23,12 @@ class WomenHome(DataMixin, ListView):
 
 
 def about(request: HttpRequest) -> HttpResponse:
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            # handle_upload_file(form.cleaned_data['file'])
-            fp = UploadFiles(file=form.cleaned_data['file'])
-            fp.save()
-    else:
-        form = UploadFileForm()
-    return render(request, "women/about.html", {"title": "О сайте", "menu": menu, 'form': form})
+    contact_list = Women.published.all()
+    paginator = Paginator(contact_list, 3)
+    page_number = request.GET.get('page')
+    page_object = paginator.get_page(page_number)
+    return render(request, "women/about.html",
+                  {"title": "О сайте", 'page_obj': page_object})
 
 
 class AddPage(DataMixin, CreateView):
